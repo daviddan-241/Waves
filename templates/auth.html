@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="row">
+  <div class="col-lg-6 mx-auto">
+    <div class="card p-4">
+      <h4 class="mb-3">Admin Access</h4>
+      <form method="get" action="/admin">
+        <div class="mb-3">
+          <label>Passphrase</label>
+          <input name="p" type="password" class="form-control" placeholder="enter admin pass" />
+        </div>
+        <button class="btn btn-primary" type="submit">Enter</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

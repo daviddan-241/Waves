@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="card p-3">
+  <h5>Task {{ t['id'] }} ({{ t['type'] }})</h5>
+  <div>Status: {{ t['status'] }} | Created: {{ t['created_at'] }} | Updated: {{ t['updated_at'] }}</div>
+  <div class="mt-3">
+    <label>Args</label>
+    <pre>{{ t['args'] }}</pre>
+  </div>
+  <div class="mt-3">
+    <label>Result (base64 preview)</label>
+    <textarea class="form-control" rows="6">{{ result_b64 }}</textarea>
+  </div>
+</div>
+{% endblock %}
